@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -47,9 +48,19 @@ type GuestbookReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.19.1/pkg/reconcile
 func (r *GuestbookReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	log := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	var guestBook webappv1.Guestbook
+	if err := r.Get(ctx, req.NamespacedName, &guestBook); err != nil {
+		log.Error(err, "unable to fetch CronJob")
+		// we'll ignore not-found errors, since they can't be fixed by an immediate
+		// requeue (we'll need to wait for a new notification), and we can get them
+		// on deleted requests.
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+	fmt.Println(guestBook)
+	fmt.Println(guestBook.Name)
+	fmt.Println(guestBook.Spec.Foo)
 
 	return ctrl.Result{}, nil
 }
